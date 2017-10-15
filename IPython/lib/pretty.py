@@ -87,6 +87,7 @@ from collections import deque
 
 from IPython.utils.py3compat import PY3, PYPY, cast_unicode, string_types
 from IPython.utils.encoding import get_stream_enc
+from IPython.utils.signatures import signature
 
 from io import StringIO
 
@@ -719,7 +720,13 @@ def _function_pprint(obj, p, cycle):
     mod = obj.__module__
     if mod and mod not in ('__builtin__', 'builtins', 'exceptions'):
         name = mod + '.' + name
-    p.text('<function %s>' % name)
+    try:
+        func_def = name + str(signature(obj))
+    except ValueError:
+        # builtins and others like numpy.ufunc, etc are not supported
+        # even though they are callables.
+        func_def = name
+    p.text('<function %s>' % func_def)
 
 
 def _exception_pprint(obj, p, cycle):
